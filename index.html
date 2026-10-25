@@ -79,6 +79,15 @@
     transition: left 0.05s linear;
   }
 
+  @keyframes bounceVillager {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-8px) scale(1.05); }
+  }
+
+  .villager-cheer {
+    animation: bounceVillager 1.2s infinite ease-in-out;
+  }
+
   /* Printable Certificate Styles */
   @media print {
     body * {
@@ -106,6 +115,11 @@
 
 <!-- 3D Pixar Village Background Canvas -->
 <div id="canvas-container"></div>
+
+<!-- Audio Player for "Happy Playtime Music for Babies, Toddlers & Kids" -->
+<audio id="happyPlaytimeBGM" loop preload="auto">
+  <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=happy-kids-playtime-112190.mp3" type="audio/mpeg">
+</audio>
 
 <!-- Top Navigation Header -->
 <header class="relative z-20 bg-emerald-600 text-white shadow-lg border-b-4 border-emerald-700">
@@ -165,9 +179,9 @@
         <span>📊</span> <span>Teacher Dashboard</span>
       </button>
 
-      <!-- BGM Audio Toggle -->
-      <button id="bgmToggleBtn" onclick="toggleBGM()" class="ml-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 px-3 py-2 rounded-full font-bold shadow transition flex items-center space-x-1">
-        <span id="bgmIcon">🎵</span> <span id="bgmText">BGM: OFF</span>
+      <!-- Happy Playtime BGM Toggle -->
+      <button id="bgmToggleBtn" onclick="togglePlaytimeBGM()" class="ml-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 px-3 py-2 rounded-full font-bold shadow transition flex items-center space-x-1">
+        <span id="bgmIcon">🎵</span> <span id="bgmText">HAPPY PLAYTIME BGM: OFF</span>
       </button>
     </nav>
   </div>
@@ -187,14 +201,14 @@
           Dau Elementary School Reading Adventure Hub
         </h2>
         <p class="text-base md:text-lg font-medium text-slate-700 leading-relaxed">
-          "Every Child a Reader, Every Reader a Champion!" Enjoy human voice reading assistance, interactive item-catching mini-games, Excel roster exports, and official printable certificates!
+          "Every Child a Reader, Every Reader a Champion!" Meet our friendly Pixar villagers in every level, enjoy Happy Playtime Music for Preschool & Kindergartens, and complete reading quests!
         </p>
         <div class="pt-4 flex flex-wrap justify-center gap-4">
           <button onclick="playSFX('click'); switchView('realms')" class="bg-orange-500 hover:bg-orange-600 text-white font-fredoka text-xl px-8 py-4 rounded-2xl shadow-lg transform hover:-translate-y-1 transition border-b-4 border-orange-700">
             🚀 Start Reading Adventure
           </button>
-          <button onclick="readHumanVoice('Welcome to Dau Elementary School Reading Adventure Hub! Select a realm to start your reading adventure!')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg px-6 py-4 rounded-2xl shadow-lg transform hover:-translate-y-1 transition border-b-4 border-emerald-700 flex items-center space-x-2">
-            <span>🗣️</span> <span>Listen Voice Guide</span>
+          <button onclick="readCuteLittleGirlVoice('Hi there! Welcome to Dau Elementary School Reading Adventure Hub! I am super happy to read with you today! Let us go!')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg px-6 py-4 rounded-2xl shadow-lg transform hover:-translate-y-1 transition border-b-4 border-emerald-700 flex items-center space-x-2">
+            <span>👧</span> <span>Listen Girl Guide</span>
           </button>
         </div>
       </div>
@@ -203,7 +217,7 @@
     <!-- Realm Selection Cards -->
     <div>
       <h3 class="font-fredoka text-2xl md:text-3xl text-emerald-900 mb-6 flex items-center space-x-2">
-        <span>🗺️</span> <span>Explore Reading Paths</span>
+        <span>🗺️</span> <span>Explore Reading Paths with Villagers</span>
       </h3>
       <div id="realms-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </div>
@@ -246,8 +260,22 @@
       </div>
     </div>
 
-    <!-- Active Activity Card -->
-    <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-4 border-white">
+    <!-- Active Question Card with Level Villager Guide -->
+    <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-4 border-white relative overflow-hidden">
+      <!-- Level Villager Cheer Banner -->
+      <div class="flex items-center justify-between bg-amber-100 border-2 border-amber-300 rounded-2xl p-3 px-5 shadow-sm">
+        <div class="flex items-center space-x-3">
+          <span id="level-villager-avatar" class="text-4xl villager-cheer">🧑‍🌾</span>
+          <div>
+            <h4 id="level-villager-name" class="font-fredoka text-sm text-slate-800">Farmer Pip - Village Guide</h4>
+            <p id="level-villager-dialogue" class="text-xs font-bold text-amber-900">"Yay! Welcome to my level! You can do it!"</p>
+          </div>
+        </div>
+        <button onclick="cheerVillager()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 text-xs font-extrabold px-3 py-1.5 rounded-xl shadow">
+          👋 High Five Villager!
+        </button>
+      </div>
+
       <div class="text-center space-y-3">
         <div class="inline-flex items-center space-x-3 bg-emerald-50 px-5 py-2.5 rounded-full border border-emerald-200">
           <span id="game-question-prompt" class="font-bold text-lg md:text-xl text-slate-800">
@@ -260,7 +288,7 @@
         <div id="game-visual-cue" class="text-5xl md:text-6xl py-2">🍎</div>
       </div>
 
-      <!-- Drag & Drop Container -->
+      <!-- Drag Mode Area -->
       <div id="drag-mode-container" class="space-y-8">
         <div class="flex justify-center">
           <div id="drop-target-box" class="drop-target w-44 h-44 md:w-52 md:h-52 bg-slate-100 border-4 border-dashed border-emerald-400 rounded-3xl flex flex-col items-center justify-center p-4 shadow-inner relative">
@@ -272,7 +300,7 @@
         <div id="draggable-options-pool" class="flex flex-wrap justify-center gap-4 md:gap-6 pt-4"></div>
       </div>
 
-      <!-- Item Catching Game Container -->
+      <!-- Catch Mode Area -->
       <div id="catch-mode-container" class="hidden relative w-full h-80 bg-gradient-to-b from-sky-200 to-emerald-100 rounded-2xl overflow-hidden border-4 border-emerald-300 shadow-inner">
         <div class="absolute top-2 left-4 bg-white/80 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold text-slate-700 z-10">
           Target: <span id="catch-target-text" class="text-emerald-700 font-black text-sm">A</span>
@@ -300,7 +328,7 @@
       <h2 class="font-fredoka text-3xl text-emerald-900">Teacher Analytics & Learner Database</h2>
       
       <div class="flex items-center space-x-3">
-        <!-- Excel Export Button -->
+        <!-- Excel Download Button -->
         <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow border-b-4 border-emerald-800 flex items-center space-x-2 transition">
           <span>📊</span> <span>Export Roster to Excel (.xlsx)</span>
         </button>
@@ -331,12 +359,54 @@
       </div>
     </div>
 
-    <!-- Roster Table -->
+    <!-- TEACHER INPUT FORM CARD -->
+    <div class="glass-card rounded-2xl p-6 border-2 border-emerald-400">
+      <h3 class="font-fredoka text-xl text-emerald-900 mb-4 flex items-center space-x-2">
+        <span>➕</span> <span>Add / Register New Learner</span>
+      </h3>
+      <form id="add-learner-form" onsubmit="handleLearnerSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div>
+          <label class="block text-xs font-black text-slate-600 uppercase mb-1">Learner Full Name</label>
+          <input type="text" id="input-name" placeholder="e.g. Juan Dela Cruz" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-black text-slate-600 uppercase mb-1">Grade Level</label>
+          <select id="input-grade" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <option value="Grade 1">Grade 1</option>
+            <option value="Grade 2">Grade 2</option>
+            <option value="Grade 3">Grade 3</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-black text-slate-600 uppercase mb-1">Section</label>
+          <input type="text" id="input-section" placeholder="e.g. Sampaguita" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-black text-slate-600 uppercase mb-1">Reading Realm</label>
+          <select id="input-realm" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <option value="Alphabet Village">Alphabet Village</option>
+            <option value="Blend Bridge">Blend Bridge</option>
+            <option value="Word Forest">Word Forest</option>
+            <option value="Sight Word City">Sight Word City</option>
+            <option value="Sentence Town">Sentence Town</option>
+            <option value="Comprehension Mountain">Comprehension Mountain</option>
+            <option value="Reader Castle">Reader Castle</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm py-2 rounded-xl shadow transition">
+            ➕ Add Learner Record
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Learner Progress Roster Table -->
     <div class="glass-card rounded-2xl p-6 border-2 border-slate-200">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-fredoka text-xl text-slate-800">Learner Progress Roster</h3>
-        <button onclick="openCertificateModal('Juan Dela Cruz', 'Grade 1')" class="bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold text-xs px-3 py-2 rounded-lg shadow">
-          📜 Generate Custom Certificate
+        <button onclick="openCertificateModal('Juan Dela Cruz', 'Grade 1', 'Sampaguita')" class="bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold text-xs px-3 py-2 rounded-lg shadow">
+          📜 Custom Certificate
         </button>
       </div>
       <div class="overflow-x-auto">
@@ -344,7 +414,7 @@
           <thead>
             <tr class="border-b-2 border-slate-200 text-xs font-black text-slate-500 uppercase">
               <th class="py-3 px-4">Learner Name</th>
-              <th class="py-3 px-4">Grade Level</th>
+              <th class="py-3 px-4">Grade & Section</th>
               <th class="py-3 px-4">Completed Realms</th>
               <th class="py-3 px-4">Coins Earned</th>
               <th class="py-3 px-4">Action</th>
@@ -384,6 +454,7 @@
         <p class="font-fredoka text-3xl md:text-4xl text-amber-600 uppercase tracking-widest">Certificate of Achievement</p>
         <p class="text-sm font-semibold text-slate-600 italic">This is proudly awarded to</p>
         <h2 id="cert-student-name" class="font-fredoka text-3xl md:text-4xl text-emerald-800 border-b-2 border-emerald-600 inline-block px-8 py-1">Juan Dela Cruz</h2>
+        <p id="cert-student-section" class="text-xs font-bold text-slate-500 uppercase">Grade 1 - Sampaguita</p>
       </div>
 
       <p class="text-sm text-slate-700 leading-relaxed max-w-2xl mx-auto">
@@ -429,24 +500,24 @@
 </footer>
 
 <script>
-// --- GLOBAL DATA & STATE ---
+// --- GLOBAL DATA & VILLAGERS ---
 const REALMS_DATA = [
-  { id: 'alphabet', title: 'Alphabet Village', level: 'L', icon: '🔤', desc: 'Letter Recognition & Phonics Sounds' },
-  { id: 'blend', title: 'Blend Bridge', level: 'CV', icon: '🌉', desc: 'Consonant-Vowel Blending Activities' },
-  { id: 'cvc', title: 'Word Forest', level: 'CVC', icon: '🌳', desc: 'Reading CVC Words & Vocabulary' },
-  { id: 'sight', title: 'Sight Word City', level: 'SW', icon: '⭐', desc: 'High-Frequency Sight Words' },
-  { id: 'sentence', title: 'Sentence Town', level: 'C', icon: '🏘️', desc: 'Sentence Reading & Fluency' },
-  { id: 'instructional', title: 'Comprehension Mountain', level: 'B', icon: '📚', desc: 'Instructional Reading Passages' },
-  { id: 'independent', title: 'Reader Castle', level: 'A', icon: '🏰', desc: 'Independent Story Comprehension' }
+  { id: 'alphabet', title: 'Alphabet Village', level: 'L', icon: '🔤', desc: 'Letter Recognition & Phonics Sounds', villagerName: 'Farmer Pip', villagerAvatar: '🧑‍🌾', villagerGreeting: 'Welcome to Alphabet Village! Let us learn our letter sounds together!' },
+  { id: 'blend', title: 'Blend Bridge', level: 'CV', icon: '🌉', desc: 'Consonant-Vowel Blending Activities', villagerName: 'Captain Bruno', villagerAvatar: '🧑‍✈️', villagerGreeting: 'Ahoy reader! Help me blend these sounds across Blend Bridge!' },
+  { id: 'cvc', title: 'Word Forest', level: 'CVC', icon: '🌳', desc: 'Reading CVC Words & Vocabulary', villagerName: 'Ranger Woody', villagerAvatar: '🤠', villagerGreeting: 'Howdy! Discover three-letter CVC words hidden in Word Forest!' },
+  { id: 'sight', title: 'Sight Word City', level: 'SW', icon: '⭐', desc: 'High-Frequency Sight Words', villagerName: 'Mayor Stella', villagerAvatar: '👩‍💼', villagerGreeting: 'Greetings! Sight Word City needs smart readers like you!' },
+  { id: 'sentence', title: 'Sentence Town', level: 'C', icon: '🏘️', desc: 'Sentence Reading & Fluency', villagerName: 'Baker Barnaby', villagerAvatar: '🧑‍🍳', villagerGreeting: 'Fresh sentences hot out of the oven! Read them with me!' },
+  { id: 'instructional', title: 'Comprehension Mountain', level: 'B', icon: '📚', desc: 'Instructional Reading Passages', villagerName: 'Professor Penny', villagerAvatar: '👩‍🏫', villagerGreeting: 'Climb high! Answer reading passages at Comprehension Mountain!' },
+  { id: 'independent', title: 'Reader Castle', level: 'A', icon: '🏰', desc: 'Independent Story Comprehension', villagerName: 'King Arthur', villagerAvatar: '🤴', villagerGreeting: 'Welcome champion! Master story comprehension to reign in Reader Castle!' }
 ];
 
-const LEARNERS_ROSTER = [
-  { name: 'Juan Dela Cruz', grade: 'Grade 1', level: 'Alphabet Village', coins: 120, status: 'Active' },
-  { name: 'Maria Santos', grade: 'Grade 1', level: 'Blend Bridge', coins: 180, status: 'Active' },
-  { name: 'Pedro Penduko', grade: 'Grade 2', level: 'Word Forest', coins: 250, status: 'Completed' },
-  { name: 'Ana Reyes', grade: 'Grade 2', level: 'Sight Word City', coins: 310, status: 'Active' },
-  { name: 'Lito Lapid', grade: 'Grade 3', level: 'Sentence Town', coins: 400, status: 'Completed' },
-  { name: 'Elena Torres', grade: 'Grade 3', level: 'Comprehension Mountain', coins: 480, status: 'Completed' }
+let LEARNERS_ROSTER = [
+  { name: 'Juan Dela Cruz', grade: 'Grade 1', section: 'Sampaguita', level: 'Alphabet Village', coins: 120, status: 'Active' },
+  { name: 'Maria Santos', grade: 'Grade 1', section: 'Sampaguita', level: 'Blend Bridge', coins: 180, status: 'Active' },
+  { name: 'Pedro Penduko', grade: 'Grade 2', section: 'Mabanglo', level: 'Word Forest', coins: 250, status: 'Completed' },
+  { name: 'Ana Reyes', grade: 'Grade 2', section: 'Mabanglo', level: 'Sight Word City', coins: 310, status: 'Active' },
+  { name: 'Lito Lapid', grade: 'Grade 3', section: 'Camia', level: 'Sentence Town', coins: 400, status: 'Completed' },
+  { name: 'Elena Torres', grade: 'Grade 3', section: 'Camia', level: 'Comprehension Mountain', coins: 480, status: 'Completed' }
 ];
 
 const QUESTIONS_DB = {
@@ -485,11 +556,11 @@ let userCoins = 0;
 let userHearts = 3;
 let catchAnimationId = null;
 let audioCtx = null;
-let bgmIsPlaying = false;
+let playtimeBgmIsPlaying = false;
 let completedRealms = new Set();
 
-// --- THREE.JS 3D BACKGROUND WORLD ---
-let scene, camera, renderer, housesGroup, treesGroup;
+// --- THREE.JS 3D PIXAR VILLAGE BACKGROUND WITH VILLAGERS ---
+let scene, camera, renderer, housesGroup, treesGroup, villagers3DGroup;
 
 function init3DWorld() {
   const container = document.getElementById('canvas-container');
@@ -522,6 +593,7 @@ function init3DWorld() {
 
   housesGroup = new THREE.Group();
   treesGroup = new THREE.Group();
+  villagers3DGroup = new THREE.Group();
 
   for (let i = -3; i <= 3; i++) {
     if (i === 0) continue;
@@ -538,6 +610,14 @@ function init3DWorld() {
   }
   scene.add(treesGroup);
 
+  const villagerColors = [0xef4444, 0x3b82f6, 0xeab308, 0xa855f7, 0x10b981];
+  for (let i = -4; i <= 4; i += 2) {
+    const vMesh = create3DVillagerMesh(villagerColors[Math.abs(i) % villagerColors.length]);
+    vMesh.position.set(i * 6 + (Math.random() * 2 - 1), -1, -2 - Math.random() * 4);
+    villagers3DGroup.add(vMesh);
+  }
+  scene.add(villagers3DGroup);
+
   function animate() {
     requestAnimationFrame(animate);
     const time = Date.now() * 0.001;
@@ -546,6 +626,9 @@ function init3DWorld() {
     });
     treesGroup.children.forEach((t, idx) => {
       t.rotation.z = Math.sin(time * 2 + idx) * 0.03;
+    });
+    villagers3DGroup.children.forEach((v, idx) => {
+      v.position.y = -1 + Math.abs(Math.sin(time * 3 + idx)) * 0.4;
     });
     renderer.render(scene, camera);
   }
@@ -593,10 +676,54 @@ function createPixarTree() {
   return tree;
 }
 
+function create3DVillagerMesh(shirtColor) {
+  const vGroup = new THREE.Group();
+  const bodyGeo = new THREE.CylinderGeometry(0.5, 0.6, 1.2, 8);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: shirtColor });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 0.6;
+  vGroup.add(body);
+
+  const headGeo = new THREE.SphereGeometry(0.45, 12, 12);
+  const headMat = new THREE.MeshLambertMaterial({ color: 0xfde047 });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.y = 1.45;
+  vGroup.add(head);
+
+  const hatGeo = new THREE.ConeGeometry(0.55, 0.5, 8);
+  const hatMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+  const hat = new THREE.Mesh(hatGeo, hatMat);
+  hat.position.y = 1.85;
+  vGroup.add(hat);
+
+  return vGroup;
+}
+
 // --- AUDIO & VOICE SYNTHESIS ---
 function initAudioContext() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+function togglePlaytimeBGM() {
+  const audioEl = document.getElementById('happyPlaytimeBGM');
+  const icon = document.getElementById('bgmIcon');
+  const text = document.getElementById('bgmText');
+
+  if (playtimeBgmIsPlaying) {
+    audioEl.pause();
+    playtimeBgmIsPlaying = false;
+    icon.textContent = '🎵';
+    text.textContent = 'HAPPY PLAYTIME BGM: OFF';
+  } else {
+    audioEl.play().then(() => {
+      playtimeBgmIsPlaying = true;
+      icon.textContent = '🎶';
+      text.textContent = 'HAPPY PLAYTIME BGM: ON';
+    }).catch(err => {
+      console.log('Audio playback prevented:', err);
+    });
   }
 }
 
@@ -632,65 +759,62 @@ function playSFX(type) {
   osc.stop(audioCtx.currentTime + 0.3);
 }
 
-function toggleBGM() {
-  initAudioContext();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-
-  const icon = document.getElementById('bgmIcon');
-  const text = document.getElementById('bgmText');
-
-  if (bgmIsPlaying) {
-    bgmIsPlaying = false;
-    icon.textContent = '🎵';
-    text.textContent = 'BGM: OFF';
-  } else {
-    bgmIsPlaying = true;
-    icon.textContent = '🎶';
-    text.textContent = 'BGM: ON';
-    playPentatonicBGM();
-  }
-}
-
-function playPentatonicBGM() {
-  if (!bgmIsPlaying) return;
-  const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
-  let step = 0;
-
-  function nextNote() {
-    if (!bgmIsPlaying) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-
-    osc.type = 'triangle';
-    osc.frequency.value = notes[step % notes.length];
-
-    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.3);
-
-    step = (step + 1) % notes.length;
-    setTimeout(nextNote, 400);
-  }
-  nextNote();
-}
-
-function readHumanVoice(text) {
+// CUTE LITTLE GIRL VOICE SYNTHESIS ENGINE
+function readCuteLittleGirlVoice(text) {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
-    const naturalVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
-    if (naturalVoice) utterance.voice = naturalVoice;
+    
+    // Select friendly, cheerful female voice profile
+    const girlVoice = voices.find(v => 
+      v.lang.includes('en') && (
+        v.name.includes('Samantha') || 
+        v.name.includes('Victoria') || 
+        v.name.includes('Karen') || 
+        v.name.includes('Zira') || 
+        v.name.includes('Google US English') ||
+        v.name.includes('Natural')
+      )
+    ) || voices.find(v => v.lang.includes('en'));
 
-    utterance.pitch = 1.0;
-    utterance.rate = 0.9;
+    if (girlVoice) utterance.voice = girlVoice;
+
+    // Speech parameters tuned for a happy, expressive, cute little girl voice
+    utterance.pitch = 1.55; // Cute child-like higher pitch
+    utterance.rate = 0.98;  // Natural, playful reading cadence
+    utterance.volume = 1.0;
+
     window.speechSynthesis.speak(utterance);
   }
+}
+
+// --- LEARNER INPUT FORM HANDLER ---
+function handleLearnerSubmit(e) {
+  e.preventDefault();
+  playSFX('click');
+
+  const name = document.getElementById('input-name').value.trim();
+  const grade = document.getElementById('input-grade').value;
+  const section = document.getElementById('input-section').value.trim();
+  const realm = document.getElementById('input-realm').value;
+
+  if (!name || !section) return;
+
+  LEARNERS_ROSTER.unshift({
+    name: name,
+    grade: grade,
+    section: section,
+    level: realm,
+    coins: 0,
+    status: 'Active'
+  });
+
+  document.getElementById('input-name').value = '';
+  document.getElementById('input-section').value = '';
+
+  renderDashboard();
+  readCuteLittleGirlVoice(`Yay! I added ${name} to ${grade} ${section}!`);
 }
 
 // --- EXCEL (.XLSX) EXPORT ---
@@ -700,6 +824,7 @@ function exportToExcel() {
   const exportData = LEARNERS_ROSTER.map(learner => ({
     'Learner Name': learner.name,
     'Grade Level': learner.grade,
+    'Section': learner.section,
     'Current Level / Realm': learner.level,
     'Total Coins': learner.coins,
     'Quest Status': learner.status
@@ -709,6 +834,7 @@ function exportToExcel() {
   worksheet['!cols'] = [
     { wch: 22 },
     { wch: 14 },
+    { wch: 16 },
     { wch: 25 },
     { wch: 12 },
     { wch: 15 }
@@ -743,7 +869,10 @@ function renderRealms() {
     return `
       <div onclick="playSFX('click'); startRealmGame('${realm.id}')" class="glass-card rounded-2xl p-5 border-2 ${isDone ? 'border-amber-400 bg-amber-50/50' : 'border-white'} hover:border-yellow-400 hover:shadow-2xl transform hover:-translate-y-1 transition cursor-pointer flex flex-col justify-between space-y-4">
         <div class="flex items-center justify-between">
-          <span class="text-4xl">${realm.icon}</span>
+          <div class="flex items-center space-x-2">
+            <span class="text-4xl">${realm.icon}</span>
+            <span class="text-2xl">${realm.villagerAvatar}</span>
+          </div>
           <span class="${isDone ? 'bg-amber-400 text-slate-900' : 'bg-emerald-100 text-emerald-800'} font-extrabold text-xs px-3 py-1 rounded-full uppercase">
             ${isDone ? '⭐ Completed' : 'Level ' + realm.level}
           </span>
@@ -751,6 +880,7 @@ function renderRealms() {
         <div>
           <h4 class="font-fredoka text-xl text-slate-800">${realm.title}</h4>
           <p class="text-xs text-slate-600 font-medium mt-1">${realm.desc}</p>
+          <p class="text-xs text-amber-800 font-bold mt-2">Guide: ${realm.villagerName}</p>
         </div>
         <button class="w-full ${isDone ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'} text-white font-fredoka py-2.5 rounded-xl shadow transition text-sm">
           ${isDone ? 'Replay Quest 🔄' : 'Play Activity 🚀'}
@@ -775,13 +905,22 @@ function startRealmGame(realmId) {
 function loadQuestion() {
   const questions = getQuestionsForRealm(currentRealmId);
   const q = questions[currentQuestionIdx];
-  const realmObj = REALMS_DATA.find(r => r.id === currentRealmId) || { title: 'Reading Quest' };
+  const realmObj = REALMS_DATA.find(r => r.id === currentRealmId) || { 
+    title: 'Reading Quest', 
+    villagerName: 'Village Friend', 
+    villagerAvatar: '🧑‍🌾',
+    villagerGreeting: 'Yay! Let us read together!'
+  };
 
   document.getElementById('game-realm-title').textContent = realmObj.title;
   document.getElementById('game-progress-text').textContent = `Item ${currentQuestionIdx + 1} of 10`;
   document.getElementById('game-question-prompt').textContent = q.prompt;
   document.getElementById('game-visual-cue').textContent = q.visual;
   document.getElementById('hint-text').classList.add('hidden');
+
+  document.getElementById('level-villager-avatar').textContent = realmObj.villagerAvatar;
+  document.getElementById('level-villager-name').textContent = `${realmObj.villagerName} - Level Guide`;
+  document.getElementById('level-villager-dialogue').textContent = `"${realmObj.villagerGreeting}"`;
 
   updateHeartsDisplay();
 
@@ -795,7 +934,14 @@ function loadQuestion() {
     initDragGame(q);
   }
 
-  readHumanVoice(q.prompt);
+  readCuteLittleGirlVoice(q.prompt);
+}
+
+function cheerVillager() {
+  playSFX('coin');
+  const realmObj = REALMS_DATA.find(r => r.id === currentRealmId);
+  const vName = realmObj ? realmObj.villagerName : 'Your village friend';
+  readCuteLittleGirlVoice(`Yay! High five! ${vName} says you are doing so awesome!`);
 }
 
 function updateHeartsDisplay() {
@@ -811,7 +957,7 @@ function updateHeartsDisplay() {
 
 function readQuestionPrompt() {
   const q = getQuestionsForRealm(currentRealmId)[currentQuestionIdx];
-  readHumanVoice(q.prompt);
+  readCuteLittleGirlVoice(q.prompt);
 }
 
 function initDragGame(question) {
@@ -913,7 +1059,7 @@ function checkAnswer(selected, correct) {
     triggerCoinAnimation();
     userCoins += 10;
     document.getElementById('game-coins').textContent = userCoins;
-    readHumanVoice('Excellent reading! That is correct!');
+    readCuteLittleGirlVoice('Yay! You got it right! Super job!');
 
     setTimeout(() => {
       currentQuestionIdx++;
@@ -930,9 +1076,9 @@ function checkAnswer(selected, correct) {
     updateHeartsDisplay();
 
     if (userHearts > 0) {
-      readHumanVoice(`Try again! You have ${userHearts} attempts left.`);
+      readCuteLittleGirlVoice(`Oh! Try again, friend! You still have ${userHearts} chances left!`);
     } else {
-      readHumanVoice('No attempts left! Moving to the next question.');
+      readCuteLittleGirlVoice('That is okay! Let us try the next fun question together!');
       setTimeout(() => {
         currentQuestionIdx++;
         userHearts = 3;
@@ -958,7 +1104,7 @@ function giveHint() {
   const hintEl = document.getElementById('hint-text');
   hintEl.textContent = `Hint: Look for '${q.correct.charAt(0)}'!`;
   hintEl.classList.remove('hidden');
-  readHumanVoice(`Hint: look for ${q.correct}`);
+  readCuteLittleGirlVoice(`Here is a secret hint! Look for ${q.correct}`);
 }
 
 function finishRealm() {
@@ -967,7 +1113,7 @@ function finishRealm() {
   
   completedRealms.add(currentRealmId);
 
-  readHumanVoice('Congratulations! You completed the reading realm adventure!');
+  readCuteLittleGirlVoice('Hooray! You finished the reading quest! You are a superstar reader!');
   alert(`🎉 Realm Complete! You earned ${userCoins} coins!`);
   renderRealms();
   switchView('home');
@@ -979,8 +1125,9 @@ function exitGame() {
 }
 
 // --- DYNAMIC CERTIFICATE GENERATOR ---
-function openCertificateModal(studentName = 'Learner Champion', grade = 'Grade 1') {
+function openCertificateModal(studentName = 'Learner Champion', grade = 'Grade 1', section = 'Sampaguita') {
   document.getElementById('cert-student-name').textContent = studentName;
+  document.getElementById('cert-student-section').textContent = `${grade} - ${section}`;
   
   const certRealmsContainer = document.getElementById('cert-realms-container');
   certRealmsContainer.innerHTML = '';
@@ -1011,15 +1158,20 @@ function closeCertificateModal() {
 }
 
 function renderDashboard() {
+  document.getElementById('dash-total-learners').textContent = LEARNERS_ROSTER.length;
+  document.getElementById('dash-g1-learners').textContent = LEARNERS_ROSTER.filter(l => l.grade === 'Grade 1').length;
+  document.getElementById('dash-g2-learners').textContent = LEARNERS_ROSTER.filter(l => l.grade === 'Grade 2').length;
+  document.getElementById('dash-g3-learners').textContent = LEARNERS_ROSTER.filter(l => l.grade === 'Grade 3').length;
+
   const tbody = document.getElementById('roster-tbody');
   tbody.innerHTML = LEARNERS_ROSTER.map(l => `
     <tr class="hover:bg-slate-50 transition">
       <td class="py-3 px-4 font-bold text-slate-800">${l.name}</td>
-      <td class="py-3 px-4">${l.grade}</td>
+      <td class="py-3 px-4">${l.grade} - <span class="font-bold text-emerald-700">${l.section}</span></td>
       <td class="py-3 px-4"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">${l.level}</span></td>
       <td class="py-3 px-4 font-bold text-amber-600">🪙 ${l.coins}</td>
       <td class="py-3 px-4">
-        <button onclick="openCertificateModal('${l.name}', '${l.grade}')" class="text-xs bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-3 py-1.5 rounded-lg shadow">
+        <button onclick="openCertificateModal('${l.name}', '${l.grade}', '${l.section}')" class="text-xs bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-3 py-1.5 rounded-lg shadow">
           📜 Certificate
         </button>
       </td>
