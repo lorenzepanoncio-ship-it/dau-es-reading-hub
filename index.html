@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dau Elementary School Reading Adventure Hub</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<!-- SheetJS Engine for Excel (.xlsx) Exporting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Quicksand', sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow-x: hidden;
+  }
+  .font-fredoka { font-family: 'Fredoka One', cursive; }
+  
+  #canvas-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+  }
+  
+  .glass-card {
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(12px);
+    border: 3px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+  }
+
+  .draggable-item {
+    touch-action: none;
+    cursor: grab;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .draggable-item:active {
+    cursor: grabbing;
+    transform: scale(1.08) rotate(2deg);
+    z-index: 50;
+  }
+
+  .drop-target {
+    transition: all 0.2s ease;
+  }
+  .drop-target.drag-over {
+    background-color: #fef08a !important;
+    border-color: #eab308 !important;
+    transform: scale(1.05);
+  }
+
+  @keyframes floatCoin {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    50% { transform: translateY(-80px) scale(1.3) rotate(180deg); opacity: 0.9; }
+    100% { transform: translateY(-160px) scale(0.5) rotate(360deg); opacity: 0; }
+  }
+
+  .flying-coin {
+    position: fixed;
+    pointer-events: none;
+    animation: floatCoin 1s ease-out forwards;
+    z-index: 100;
+  }
+
+  .heart-lost {
+    filter: grayscale(100%);
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+
+  .basket-catcher {
+    transition: left 0.05s linear;
+  }
+
+  /* Printable Certificate Styles */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #certificate-modal, #certificate-modal * {
+      visibility: visible;
+    }
+    #certificate-modal {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: white !important;
+      padding: 0 !important;
+    }
+    .no-print {
+      display: none !important;
+    }
+  }
+</style>
+</head>
+<body class="bg-sky-100 min-h-screen text-slate-800 flex flex-col relative">
+
+<!-- 3D Pixar Village Background Canvas -->
+<div id="canvas-container"></div>
+
+<!-- Top Navigation Header -->
+<header class="relative z-20 bg-emerald-600 text-white shadow-lg border-b-4 border-emerald-700">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+    <!-- School Logo & Title -->
+    <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('home')">
+      <!-- Official Vector Replica Seal of Dau Elementary School -->
+      <svg class="w-14 h-14 bg-white rounded-full p-0.5 shadow-md transform hover:scale-105 transition" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="96" fill="#800000"/>
+        <circle cx="100" cy="100" r="90" fill="#FFD700"/>
+        <circle cx="100" cy="100" r="70" fill="#8AE2FF"/>
+        
+        <path id="textArcTop" d="M 25,100 A 75,75 0 1,1 175,100" fill="none"/>
+        <text font-family="Arial Black, sans-serif" font-weight="900" font-size="13" fill="#0B6623">
+          <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">
+            DAU ELEMENTARY SCHOOL
+          </textPath>
+        </text>
+
+        <path id="textArcBottom" d="M 175,100 A 75,75 0 0,1 25,100" fill="none"/>
+        <text font-family="Arial Black, sans-serif" font-weight="800" font-size="10" fill="#0B6623">
+          <textPath href="#textArcBottom" startOffset="50%" text-anchor="middle">
+            • DIVISION OF MABALACAT CITY •
+          </textPath>
+        </text>
+
+        <path d="M 45,115 C 40,80 70,60 70,60 C 70,60 55,85 60,115 Z" fill="#0B7A28"/>
+        <path d="M 155,115 C 160,80 130,60 130,60 C 130,60 145,85 140,115 Z" fill="#0B7A28"/>
+        
+        <path d="M 60,125 Q 100,110 100,135 Q 100,110 140,125 L 135,100 Q 100,90 100,110 Q 100,90 65,100 Z" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+        
+        <rect x="96" y="80" width="8" height="25" fill="#EAB308" rx="2"/>
+        <polygon points="92,80 108,80 102,68 98,68" fill="#CA8A04"/>
+        <path d="M 100,45 C 110,55 108,68 100,68 C 92,68 90,55 100,45 Z" fill="#EF4444"/>
+        <path d="M 100,52 C 105,58 104,65 100,65 C 96,65 95,58 100,52 Z" fill="#F59E0B"/>
+      </svg>
+      
+      <div>
+        <h1 class="font-fredoka text-xl lg:text-2xl tracking-wide text-yellow-300 drop-shadow">
+          Dau Elementary School
+        </h1>
+        <p class="text-xs font-semibold text-emerald-100 tracking-wider">
+          READING ADVENTURE HUB • DIVISION OF MABALACAT CITY
+        </p>
+      </div>
+    </div>
+
+    <!-- Navigation Options -->
+    <nav class="flex items-center space-x-2 text-sm font-bold">
+      <button onclick="playSFX('click'); switchView('home')" class="px-3 py-2 rounded-lg hover:bg-emerald-700 transition flex items-center space-x-1">
+        <span>🏠</span> <span>Home</span>
+      </button>
+      <button onclick="playSFX('click'); switchView('realms')" class="px-3 py-2 rounded-lg hover:bg-emerald-700 transition flex items-center space-x-1">
+        <span>🏰</span> <span>Reading Realms</span>
+      </button>
+      <button onclick="playSFX('click'); switchView('dashboard')" class="px-3 py-2 rounded-lg hover:bg-emerald-700 transition flex items-center space-x-1">
+        <span>📊</span> <span>Teacher Dashboard</span>
+      </button>
+
+      <!-- BGM Audio Toggle -->
+      <button id="bgmToggleBtn" onclick="toggleBGM()" class="ml-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 px-3 py-2 rounded-full font-bold shadow transition flex items-center space-x-1">
+        <span id="bgmIcon">🎵</span> <span id="bgmText">BGM: OFF</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- Main Area -->
+<main class="relative z-10 flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+
+  <!-- HOME VIEW -->
+  <section id="view-home" class="space-y-8">
+    <div class="glass-card rounded-3xl p-6 md:p-10 text-center relative overflow-hidden border-4 border-yellow-300">
+      <div class="relative z-10 max-w-3xl mx-auto space-y-4">
+        <span class="inline-block bg-yellow-400 text-slate-900 text-xs md:text-sm font-extrabold px-4 py-1.5 rounded-full uppercase tracking-widest shadow">
+          Key Stage 1 Reading Program (2026–2027)
+        </span>
+        <h2 class="font-fredoka text-3xl md:text-5xl text-emerald-800 drop-shadow-sm">
+          Dau Elementary School Reading Adventure Hub
+        </h2>
+        <p class="text-base md:text-lg font-medium text-slate-700 leading-relaxed">
+          "Every Child a Reader, Every Reader a Champion!" Enjoy human voice reading assistance, interactive item-catching mini-games, Excel roster exports, and official printable certificates!
+        </p>
+        <div class="pt-4 flex flex-wrap justify-center gap-4">
+          <button onclick="playSFX('click'); switchView('realms')" class="bg-orange-500 hover:bg-orange-600 text-white font-fredoka text-xl px-8 py-4 rounded-2xl shadow-lg transform hover:-translate-y-1 transition border-b-4 border-orange-700">
+            🚀 Start Reading Adventure
+          </button>
+          <button onclick="readHumanVoice('Welcome to Dau Elementary School Reading Adventure Hub! Select a realm to start your reading adventure!')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg px-6 py-4 rounded-2xl shadow-lg transform hover:-translate-y-1 transition border-b-4 border-emerald-700 flex items-center space-x-2">
+            <span>🗣️</span> <span>Listen Voice Guide</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Realm Selection Cards -->
+    <div>
+      <h3 class="font-fredoka text-2xl md:text-3xl text-emerald-900 mb-6 flex items-center space-x-2">
+        <span>🗺️</span> <span>Explore Reading Paths</span>
+      </h3>
+      <div id="realms-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </div>
+  </section>
+
+  <!-- REALMS LIST VIEW -->
+  <section id="view-realms" class="hidden space-y-6">
+    <div class="flex items-center justify-between">
+      <h2 class="font-fredoka text-3xl text-emerald-900">Choose Your Reading Quest</h2>
+      <button onclick="playSFX('click'); switchView('home')" class="bg-white hover:bg-slate-100 text-slate-700 font-bold px-4 py-2 rounded-xl shadow border">
+        ← Back to Home
+      </button>
+    </div>
+    <div id="realms-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </section>
+
+  <!-- GAME ACTIVITY ENGINE VIEW -->
+  <section id="view-game" class="hidden space-y-6">
+    <div class="glass-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 border-2 border-emerald-400">
+      <button onclick="playSFX('click'); exitGame()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-4 py-2 rounded-xl shadow text-sm">
+        ✖ Exit Activity
+      </button>
+
+      <div class="text-center">
+        <h3 id="game-realm-title" class="font-fredoka text-xl text-emerald-800">Alphabet Village</h3>
+        <p id="game-progress-text" class="text-xs font-extrabold text-slate-500">Item 1 of 10</p>
+      </div>
+
+      <div class="flex items-center space-x-6">
+        <div class="flex items-center space-x-2 bg-amber-100 border-2 border-amber-300 px-3 py-1.5 rounded-xl shadow-inner">
+          <span class="text-2xl">🪙</span>
+          <span id="game-coins" class="font-fredoka text-xl text-amber-800">0</span>
+        </div>
+        
+        <div class="flex items-center space-x-1" id="hearts-container">
+          <span class="text-2xl heart-icon">❤️</span>
+          <span class="text-2xl heart-icon">❤️</span>
+          <span class="text-2xl heart-icon">❤️</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Activity Card -->
+    <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-4 border-white">
+      <div class="text-center space-y-3">
+        <div class="inline-flex items-center space-x-3 bg-emerald-50 px-5 py-2.5 rounded-full border border-emerald-200">
+          <span id="game-question-prompt" class="font-bold text-lg md:text-xl text-slate-800">
+            Drag the correct letter sound to the box!
+          </span>
+          <button id="voicePromptBtn" onclick="readQuestionPrompt()" class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-full shadow transition">
+            🔊
+          </button>
+        </div>
+        <div id="game-visual-cue" class="text-5xl md:text-6xl py-2">🍎</div>
+      </div>
+
+      <!-- Drag & Drop Container -->
+      <div id="drag-mode-container" class="space-y-8">
+        <div class="flex justify-center">
+          <div id="drop-target-box" class="drop-target w-44 h-44 md:w-52 md:h-52 bg-slate-100 border-4 border-dashed border-emerald-400 rounded-3xl flex flex-col items-center justify-center p-4 shadow-inner relative">
+            <span class="text-slate-400 font-bold text-sm mb-1">DROP HERE</span>
+            <div id="drop-target-content" class="font-fredoka text-4xl text-emerald-700">❓</div>
+          </div>
+        </div>
+
+        <div id="draggable-options-pool" class="flex flex-wrap justify-center gap-4 md:gap-6 pt-4"></div>
+      </div>
+
+      <!-- Item Catching Game Container -->
+      <div id="catch-mode-container" class="hidden relative w-full h-80 bg-gradient-to-b from-sky-200 to-emerald-100 rounded-2xl overflow-hidden border-4 border-emerald-300 shadow-inner">
+        <div class="absolute top-2 left-4 bg-white/80 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold text-slate-700 z-10">
+          Target: <span id="catch-target-text" class="text-emerald-700 font-black text-sm">A</span>
+        </div>
+        <div id="catch-play-area" class="w-full h-full relative overflow-hidden cursor-pointer">
+          <div id="catcher-basket" class="basket-catcher absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-12 bg-amber-600 border-2 border-amber-800 rounded-b-2xl rounded-t-lg flex items-center justify-center text-white font-fredoka text-sm shadow-lg z-20">
+            🧺 Catch
+          </div>
+        </div>
+      </div>
+
+      <!-- Hint Control -->
+      <div class="flex items-center justify-between pt-4 border-t border-slate-200">
+        <button onclick="giveHint()" class="text-sm font-bold text-amber-600 hover:text-amber-700 flex items-center space-x-1">
+          <span>💡</span> <span>Need a Hint?</span>
+        </button>
+        <p id="hint-text" class="text-sm font-bold text-slate-500 italic hidden"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEACHER DASHBOARD VIEW -->
+  <section id="view-dashboard" class="hidden space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <h2 class="font-fredoka text-3xl text-emerald-900">Teacher Analytics & Learner Database</h2>
+      
+      <div class="flex items-center space-x-3">
+        <!-- Excel Export Button -->
+        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow border-b-4 border-emerald-800 flex items-center space-x-2 transition">
+          <span>📊</span> <span>Export Roster to Excel (.xlsx)</span>
+        </button>
+        
+        <button onclick="playSFX('click'); switchView('home')" class="bg-white hover:bg-slate-100 text-slate-700 font-bold px-4 py-2.5 rounded-xl shadow border">
+          ← Back to Home
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="glass-card p-5 rounded-2xl border-l-8 border-emerald-500">
+        <p class="text-xs font-extrabold text-slate-500 uppercase">Total Learners</p>
+        <h4 id="dash-total-learners" class="font-fredoka text-3xl text-slate-800">24</h4>
+      </div>
+      <div class="glass-card p-5 rounded-2xl border-l-8 border-blue-500">
+        <p class="text-xs font-extrabold text-slate-500 uppercase">Grade 1 Learners</p>
+        <h4 id="dash-g1-learners" class="font-fredoka text-3xl text-slate-800">8</h4>
+      </div>
+      <div class="glass-card p-5 rounded-2xl border-l-8 border-amber-500">
+        <p class="text-xs font-extrabold text-slate-500 uppercase">Grade 2 Learners</p>
+        <h4 id="dash-g2-learners" class="font-fredoka text-3xl text-slate-800">10</h4>
+      </div>
+      <div class="glass-card p-5 rounded-2xl border-l-8 border-purple-500">
+        <p class="text-xs font-extrabold text-slate-500 uppercase">Grade 3 Learners</p>
+        <h4 id="dash-g3-learners" class="font-fredoka text-3xl text-slate-800">6</h4>
+      </div>
+    </div>
+
+    <!-- Roster Table -->
+    <div class="glass-card rounded-2xl p-6 border-2 border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-fredoka text-xl text-slate-800">Learner Progress Roster</h3>
+        <button onclick="openCertificateModal('Juan Dela Cruz', 'Grade 1')" class="bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold text-xs px-3 py-2 rounded-lg shadow">
+          📜 Generate Custom Certificate
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table id="learners-table" class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b-2 border-slate-200 text-xs font-black text-slate-500 uppercase">
+              <th class="py-3 px-4">Learner Name</th>
+              <th class="py-3 px-4">Grade Level</th>
+              <th class="py-3 px-4">Completed Realms</th>
+              <th class="py-3 px-4">Coins Earned</th>
+              <th class="py-3 px-4">Action</th>
+            </tr>
+          </thead>
+          <tbody id="roster-tbody" class="divide-y divide-slate-100 font-medium text-sm"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- PRINTABLE CERTIFICATE MODAL -->
+<div id="certificate-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-white rounded-3xl max-w-4xl w-full p-8 shadow-2xl relative border-8 border-amber-400">
+    <button onclick="closeCertificateModal()" class="no-print absolute top-4 right-4 bg-rose-500 text-white font-bold w-10 h-10 rounded-full shadow">✖</button>
+    
+    <div id="printable-certificate-area" class="text-center space-y-4 border-4 border-emerald-700 p-8 rounded-2xl bg-amber-50/40">
+      <div class="flex justify-between items-center px-8">
+        <div class="text-left">
+          <p class="text-xs font-bold text-slate-600 uppercase">Republic of the Philippines</p>
+          <p class="text-xs font-extrabold text-emerald-800">DEPARTMENT OF EDUCATION</p>
+          <p class="text-xs font-bold text-slate-600">Region III • Division of Mabalacat City</p>
+        </div>
+        <div class="w-16 h-16 bg-white rounded-full p-1 border border-emerald-600 shadow">
+          <svg viewBox="0 0 200 200" class="w-full h-full">
+            <circle cx="100" cy="100" r="96" fill="#800000"/>
+            <circle cx="100" cy="100" r="90" fill="#FFD700"/>
+            <circle cx="100" cy="100" r="70" fill="#8AE2FF"/>
+            <path d="M 60,125 Q 100,110 100,135 Q 100,110 140,125 L 135,100 Q 100,90 100,110 Q 100,90 65,100 Z" fill="#F8FAFC" stroke="#334155" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="py-4 space-y-2">
+        <p class="font-fredoka text-3xl md:text-4xl text-amber-600 uppercase tracking-widest">Certificate of Achievement</p>
+        <p class="text-sm font-semibold text-slate-600 italic">This is proudly awarded to</p>
+        <h2 id="cert-student-name" class="font-fredoka text-3xl md:text-4xl text-emerald-800 border-b-2 border-emerald-600 inline-block px-8 py-1">Juan Dela Cruz</h2>
+      </div>
+
+      <p class="text-sm text-slate-700 leading-relaxed max-w-2xl mx-auto">
+        For outstanding reading performance and successfully completing the reading activities in the following realm(s):
+      </p>
+
+      <div id="cert-realms-container" class="flex flex-wrap justify-center gap-2 py-2"></div>
+
+      <p class="text-xs text-slate-500 italic">Dau Elementary School • Reading Adventure Hub Program</p>
+
+      <div class="pt-8 flex justify-between items-end px-12 text-center text-xs font-bold text-slate-700">
+        <div class="border-t border-slate-800 w-40 pt-1">
+          <p id="cert-adviser-name">Class Adviser</p>
+          <p class="text-slate-400 font-normal">Reading Adviser</p>
+        </div>
+        <div class="text-3xl text-amber-500">🏅</div>
+        <div class="border-t border-slate-800 w-40 pt-1">
+          <p id="cert-principal-name">School Principal</p>
+          <p class="text-slate-400 font-normal">Principal II</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="no-print mt-6 flex justify-end space-x-3">
+      <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl shadow flex items-center space-x-2">
+        <span>🖨️</span> <span>Print Certificate</span>
+      </button>
+      <button onclick="closeCertificateModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-4 py-2.5 rounded-xl">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="relative z-10 bg-emerald-800 text-emerald-100 py-6 border-t-4 border-emerald-900 mt-12">
+  <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+    <p class="font-fredoka text-lg text-yellow-300">Dau Elementary School • Division of Mabalacat City</p>
+    <p class="text-xs text-emerald-200">
+      Reading Adventure Hub © 2026–2027 • Empowering Key Stage 1 Readers
+    </p>
+  </div>
+</footer>
+
+<script>
+// --- GLOBAL DATA & STATE ---
+const REALMS_DATA = [
+  { id: 'alphabet', title: 'Alphabet Village', level: 'L', icon: '🔤', desc: 'Letter Recognition & Phonics Sounds' },
+  { id: 'blend', title: 'Blend Bridge', level: 'CV', icon: '🌉', desc: 'Consonant-Vowel Blending Activities' },
+  { id: 'cvc', title: 'Word Forest', level: 'CVC', icon: '🌳', desc: 'Reading CVC Words & Vocabulary' },
+  { id: 'sight', title: 'Sight Word City', level: 'SW', icon: '⭐', desc: 'High-Frequency Sight Words' },
+  { id: 'sentence', title: 'Sentence Town', level: 'C', icon: '🏘️', desc: 'Sentence Reading & Fluency' },
+  { id: 'instructional', title: 'Comprehension Mountain', level: 'B', icon: '📚', desc: 'Instructional Reading Passages' },
+  { id: 'independent', title: 'Reader Castle', level: 'A', icon: '🏰', desc: 'Independent Story Comprehension' }
+];
+
+const LEARNERS_ROSTER = [
+  { name: 'Juan Dela Cruz', grade: 'Grade 1', level: 'Alphabet Village', coins: 120, status: 'Active' },
+  { name: 'Maria Santos', grade: 'Grade 1', level: 'Blend Bridge', coins: 180, status: 'Active' },
+  { name: 'Pedro Penduko', grade: 'Grade 2', level: 'Word Forest', coins: 250, status: 'Completed' },
+  { name: 'Ana Reyes', grade: 'Grade 2', level: 'Sight Word City', coins: 310, status: 'Active' },
+  { name: 'Lito Lapid', grade: 'Grade 3', level: 'Sentence Town', coins: 400, status: 'Completed' },
+  { name: 'Elena Torres', grade: 'Grade 3', level: 'Comprehension Mountain', coins: 480, status: 'Completed' }
+];
+
+const QUESTIONS_DB = {
+  alphabet: [
+    { type: 'drag', prompt: 'Drag the letter that starts the word APPLE!', visual: '🍎', correct: 'A', options: ['A', 'B', 'C', 'M'] },
+    { type: 'drag', prompt: 'Drag the letter that starts the word BALL!', visual: '⚽', correct: 'B', options: ['D', 'B', 'P', 'T'] },
+    { type: 'drag', prompt: 'Drag the letter that starts the word CAT!', visual: '🐱', correct: 'C', options: ['K', 'S', 'C', 'G'] },
+    { type: 'catch', prompt: 'Catch the letter D!', visual: '🐶', correct: 'D', options: ['D', 'B', 'P', 'Q'] },
+    { type: 'drag', prompt: 'Drag the letter that starts the word FISH!', visual: '🐟', correct: 'F', options: ['V', 'F', 'E', 'T'] },
+    { type: 'drag', prompt: 'Drag the letter that starts the word SUN!', visual: '☀️', correct: 'S', options: ['C', 'Z', 'S', 'X'] },
+    { type: 'catch', prompt: 'Catch the letter M!', visual: '🐵', correct: 'M', options: ['M', 'W', 'N', 'U'] },
+    { type: 'drag', prompt: 'Drag the letter that starts the word TREE!', visual: '🌳', correct: 'T', options: ['D', 'F', 'T', 'P'] },
+    { type: 'drag', prompt: 'Drag the letter that starts the word MOON!', visual: '🌙', correct: 'M', options: ['N', 'M', 'W', 'H'] },
+    { type: 'catch', prompt: 'Catch the letter Z!', visual: '🦓', correct: 'Z', options: ['Z', 'S', 'X', 'N'] }
+  ]
+};
+
+function getQuestionsForRealm(realmId) {
+  if (QUESTIONS_DB[realmId]) return QUESTIONS_DB[realmId];
+  const items = [];
+  for (let i = 1; i <= 10; i++) {
+    items.push({
+      type: i % 3 === 0 ? 'catch' : 'drag',
+      prompt: `Identify the target word #${i} for ${realmId.toUpperCase()}!`,
+      visual: i % 2 === 0 ? '⭐' : '📖',
+      correct: `WORD${i}`,
+      options: [`WORD${i}`, `ALT${i}`, `ITEM${i}`, `TEST${i}`]
+    });
+  }
+  return items;
+}
+
+let currentRealmId = 'alphabet';
+let currentQuestionIdx = 0;
+let userCoins = 0;
+let userHearts = 3;
+let catchAnimationId = null;
+let audioCtx = null;
+let bgmIsPlaying = false;
+let completedRealms = new Set();
+
+// --- THREE.JS 3D BACKGROUND WORLD ---
+let scene, camera, renderer, housesGroup, treesGroup;
+
+function init3DWorld() {
+  const container = document.getElementById('canvas-container');
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xb9f2ff);
+  scene.fog = new THREE.FogExp2(0xb9f2ff, 0.015);
+
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 8, 22);
+  camera.lookAt(0, 3, 0);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+  scene.add(ambientLight);
+
+  const dirLight = new THREE.DirectionalLight(0xfffaed, 0.8);
+  dirLight.position.set(20, 40, 20);
+  scene.add(dirLight);
+
+  const groundGeo = new THREE.PlaneGeometry(120, 120, 32, 32);
+  const groundMat = new THREE.MeshLambertMaterial({ color: 0x86efac });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -2;
+  scene.add(ground);
+
+  housesGroup = new THREE.Group();
+  treesGroup = new THREE.Group();
+
+  for (let i = -3; i <= 3; i++) {
+    if (i === 0) continue;
+    const house = createPixarHouse();
+    house.position.set(i * 12 + (Math.random() * 2 - 1), 0, -10 - Math.random() * 5);
+    housesGroup.add(house);
+  }
+  scene.add(housesGroup);
+
+  for (let i = 0; i < 12; i++) {
+    const tree = createPixarTree();
+    tree.position.set((Math.random() - 0.5) * 60, -0.5, -5 - Math.random() * 20);
+    treesGroup.add(tree);
+  }
+  scene.add(treesGroup);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const time = Date.now() * 0.001;
+    housesGroup.children.forEach((h, idx) => {
+      h.position.y = Math.sin(time + idx) * 0.15;
+    });
+    treesGroup.children.forEach((t, idx) => {
+      t.rotation.z = Math.sin(time * 2 + idx) * 0.03;
+    });
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+}
+
+function createPixarHouse() {
+  const house = new THREE.Group();
+  const baseGeo = new THREE.BoxGeometry(3, 3, 3);
+  const baseMat = new THREE.MeshLambertMaterial({ color: 0xfde047 });
+  const base = new THREE.Mesh(baseGeo, baseMat);
+  base.position.y = 1.5;
+  house.add(base);
+
+  const roofGeo = new THREE.ConeGeometry(2.5, 2, 4);
+  const roofMat = new THREE.MeshLambertMaterial({ color: 0xf97316 });
+  const roof = new THREE.Mesh(roofGeo, roofMat);
+  roof.position.y = 4;
+  roof.rotation.y = Math.PI / 4;
+  house.add(roof);
+
+  return house;
+}
+
+function createPixarTree() {
+  const tree = new THREE.Group();
+  const trunkGeo = new THREE.CylinderGeometry(0.3, 0.4, 2);
+  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+  const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+  trunk.position.y = 1;
+  tree.add(trunk);
+
+  const leavesGeo = new THREE.DodecahedronGeometry(1.5);
+  const leavesMat = new THREE.MeshLambertMaterial({ color: 0x22c55e });
+  const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+  leaves.position.y = 2.5;
+  tree.add(leaves);
+
+  return tree;
+}
+
+// --- AUDIO & VOICE SYNTHESIS ---
+function initAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+function playSFX(type) {
+  initAudioContext();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  if (type === 'click') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+  } else if (type === 'coin') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(987.77, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1318.51, audioCtx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+  } else if (type === 'wrong') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+  }
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.3);
+}
+
+function toggleBGM() {
+  initAudioContext();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const icon = document.getElementById('bgmIcon');
+  const text = document.getElementById('bgmText');
+
+  if (bgmIsPlaying) {
+    bgmIsPlaying = false;
+    icon.textContent = '🎵';
+    text.textContent = 'BGM: OFF';
+  } else {
+    bgmIsPlaying = true;
+    icon.textContent = '🎶';
+    text.textContent = 'BGM: ON';
+    playPentatonicBGM();
+  }
+}
+
+function playPentatonicBGM() {
+  if (!bgmIsPlaying) return;
+  const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
+  let step = 0;
+
+  function nextNote() {
+    if (!bgmIsPlaying) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.value = notes[step % notes.length];
+
+    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+
+    step = (step + 1) % notes.length;
+    setTimeout(nextNote, 400);
+  }
+  nextNote();
+}
+
+function readHumanVoice(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const naturalVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
+    if (naturalVoice) utterance.voice = naturalVoice;
+
+    utterance.pitch = 1.0;
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+// --- EXCEL (.XLSX) EXPORT ---
+function exportToExcel() {
+  playSFX('click');
+
+  const exportData = LEARNERS_ROSTER.map(learner => ({
+    'Learner Name': learner.name,
+    'Grade Level': learner.grade,
+    'Current Level / Realm': learner.level,
+    'Total Coins': learner.coins,
+    'Quest Status': learner.status
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+  worksheet['!cols'] = [
+    { wch: 22 },
+    { wch: 14 },
+    { wch: 25 },
+    { wch: 12 },
+    { wch: 15 }
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Learners Roster');
+
+  const dateStr = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(workbook, `Dau_ES_Reading_Roster_${dateStr}.xlsx`);
+}
+
+// --- NAVIGATION & VIEWS ---
+function switchView(viewId) {
+  ['home', 'realms', 'game', 'dashboard'].forEach(v => {
+    const el = document.getElementById(`view-${v}`);
+    if (el) el.classList.add('hidden');
+  });
+
+  const target = document.getElementById(`view-${viewId}`);
+  if (target) target.classList.remove('hidden');
+
+  if (viewId === 'dashboard') renderDashboard();
+}
+
+function renderRealms() {
+  const homeGrid = document.getElementById('realms-grid');
+  const listContainer = document.getElementById('realms-list-container');
+
+  const html = REALMS_DATA.map(realm => {
+    const isDone = completedRealms.has(realm.id);
+    return `
+      <div onclick="playSFX('click'); startRealmGame('${realm.id}')" class="glass-card rounded-2xl p-5 border-2 ${isDone ? 'border-amber-400 bg-amber-50/50' : 'border-white'} hover:border-yellow-400 hover:shadow-2xl transform hover:-translate-y-1 transition cursor-pointer flex flex-col justify-between space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">${realm.icon}</span>
+          <span class="${isDone ? 'bg-amber-400 text-slate-900' : 'bg-emerald-100 text-emerald-800'} font-extrabold text-xs px-3 py-1 rounded-full uppercase">
+            ${isDone ? '⭐ Completed' : 'Level ' + realm.level}
+          </span>
+        </div>
+        <div>
+          <h4 class="font-fredoka text-xl text-slate-800">${realm.title}</h4>
+          <p class="text-xs text-slate-600 font-medium mt-1">${realm.desc}</p>
+        </div>
+        <button class="w-full ${isDone ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'} text-white font-fredoka py-2.5 rounded-xl shadow transition text-sm">
+          ${isDone ? 'Replay Quest 🔄' : 'Play Activity 🚀'}
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  if (homeGrid) homeGrid.innerHTML = html;
+  if (listContainer) listContainer.innerHTML = html;
+}
+
+// --- GAME LOGIC ---
+function startRealmGame(realmId) {
+  currentRealmId = realmId;
+  currentQuestionIdx = 0;
+  userHearts = 3;
+  switchView('game');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const questions = getQuestionsForRealm(currentRealmId);
+  const q = questions[currentQuestionIdx];
+  const realmObj = REALMS_DATA.find(r => r.id === currentRealmId) || { title: 'Reading Quest' };
+
+  document.getElementById('game-realm-title').textContent = realmObj.title;
+  document.getElementById('game-progress-text').textContent = `Item ${currentQuestionIdx + 1} of 10`;
+  document.getElementById('game-question-prompt').textContent = q.prompt;
+  document.getElementById('game-visual-cue').textContent = q.visual;
+  document.getElementById('hint-text').classList.add('hidden');
+
+  updateHeartsDisplay();
+
+  if (q.type === 'catch') {
+    document.getElementById('drag-mode-container').classList.add('hidden');
+    document.getElementById('catch-mode-container').classList.remove('hidden');
+    initCatchGame(q);
+  } else {
+    document.getElementById('catch-mode-container').classList.add('hidden');
+    document.getElementById('drag-mode-container').classList.remove('hidden');
+    initDragGame(q);
+  }
+
+  readHumanVoice(q.prompt);
+}
+
+function updateHeartsDisplay() {
+  const container = document.getElementById('hearts-container');
+  container.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const heart = document.createElement('span');
+    heart.className = `text-2xl ${i < userHearts ? 'heart-icon' : 'heart-lost'}`;
+    heart.textContent = '❤️';
+    container.appendChild(heart);
+  }
+}
+
+function readQuestionPrompt() {
+  const q = getQuestionsForRealm(currentRealmId)[currentQuestionIdx];
+  readHumanVoice(q.prompt);
+}
+
+function initDragGame(question) {
+  const dropTarget = document.getElementById('drop-target-box');
+  const dropContent = document.getElementById('drop-target-content');
+  const pool = document.getElementById('draggable-options-pool');
+
+  dropContent.textContent = '❓';
+  dropTarget.classList.remove('bg-emerald-100', 'border-emerald-500');
+
+  pool.innerHTML = '';
+  question.options.forEach(opt => {
+    const card = document.createElement('div');
+    card.className = 'draggable-item bg-white border-2 border-emerald-300 rounded-2xl px-6 py-4 shadow-md font-fredoka text-2xl text-emerald-800 hover:bg-emerald-50';
+    card.textContent = opt;
+    card.setAttribute('draggable', 'true');
+
+    card.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', opt);
+    });
+
+    pool.appendChild(card);
+  });
+
+  dropTarget.ondragover = (e) => {
+    e.preventDefault();
+    dropTarget.classList.add('drag-over');
+  };
+  dropTarget.ondragleave = () => dropTarget.classList.remove('drag-over');
+  dropTarget.ondrop = (e) => {
+    e.preventDefault();
+    dropTarget.classList.remove('drag-over');
+    const droppedVal = e.dataTransfer.getData('text/plain');
+    checkAnswer(droppedVal, question.correct);
+  };
+}
+
+function initCatchGame(question) {
+  if (catchAnimationId) cancelAnimationFrame(catchAnimationId);
+  const playArea = document.getElementById('catch-play-area');
+  const basket = document.getElementById('catcher-basket');
+  document.getElementById('catch-target-text').textContent = question.correct;
+
+  let basketX = playArea.clientWidth / 2 - 48;
+  basket.style.left = `${basketX}px`;
+
+  playArea.onmousemove = (e) => {
+    const rect = playArea.getBoundingClientRect();
+    basketX = Math.max(0, Math.min(rect.width - 96, e.clientX - rect.left - 48));
+    basket.style.left = `${basketX}px`;
+  };
+
+  const oldItems = playArea.querySelectorAll('.falling-item-el');
+  oldItems.forEach(el => el.remove());
+
+  let fallingItem = {
+    x: Math.random() * (playArea.clientWidth - 60),
+    y: -40,
+    val: question.options[Math.floor(Math.random() * question.options.length)],
+    speed: 2.2
+  };
+
+  const itemEl = document.createElement('div');
+  itemEl.className = 'falling-item-el absolute bg-white border-2 border-yellow-400 rounded-full w-14 h-14 flex items-center justify-center font-fredoka text-xl text-emerald-800 shadow-md z-10';
+  playArea.appendChild(itemEl);
+
+  function updateGame() {
+    fallingItem.y += fallingItem.speed;
+    itemEl.style.left = `${fallingItem.x}px`;
+    itemEl.style.top = `${fallingItem.y}px`;
+    itemEl.textContent = fallingItem.val;
+
+    if (fallingItem.y >= playArea.clientHeight - 60 && fallingItem.y <= playArea.clientHeight - 10) {
+      if (fallingItem.x + 40 >= basketX && fallingItem.x <= basketX + 96) {
+        const caughtVal = fallingItem.val;
+        fallingItem.y = -40;
+        fallingItem.x = Math.random() * (playArea.clientWidth - 60);
+        fallingItem.val = question.options[Math.floor(Math.random() * question.options.length)];
+
+        checkAnswer(caughtVal, question.correct);
+      }
+    }
+
+    if (fallingItem.y > playArea.clientHeight) {
+      fallingItem.y = -40;
+      fallingItem.x = Math.random() * (playArea.clientWidth - 60);
+      fallingItem.val = question.options[Math.floor(Math.random() * question.options.length)];
+    }
+
+    catchAnimationId = requestAnimationFrame(updateGame);
+  }
+
+  catchAnimationId = requestAnimationFrame(updateGame);
+}
+
+function checkAnswer(selected, correct) {
+  if (selected === correct) {
+    playSFX('coin');
+    triggerCoinAnimation();
+    userCoins += 10;
+    document.getElementById('game-coins').textContent = userCoins;
+    readHumanVoice('Excellent reading! That is correct!');
+
+    setTimeout(() => {
+      currentQuestionIdx++;
+      userHearts = 3;
+      if (currentQuestionIdx < 10) {
+        loadQuestion();
+      } else {
+        finishRealm();
+      }
+    }, 1200);
+  } else {
+    playSFX('wrong');
+    userHearts--;
+    updateHeartsDisplay();
+
+    if (userHearts > 0) {
+      readHumanVoice(`Try again! You have ${userHearts} attempts left.`);
+    } else {
+      readHumanVoice('No attempts left! Moving to the next question.');
+      setTimeout(() => {
+        currentQuestionIdx++;
+        userHearts = 3;
+        if (currentQuestionIdx < 10) loadQuestion();
+        else finishRealm();
+      }, 1500);
+    }
+  }
+}
+
+function triggerCoinAnimation() {
+  const coin = document.createElement('div');
+  coin.className = 'flying-coin text-4xl';
+  coin.textContent = '🪙';
+  coin.style.left = '50%';
+  coin.style.top = '50%';
+  document.body.appendChild(coin);
+  setTimeout(() => coin.remove(), 1000);
+}
+
+function giveHint() {
+  const q = getQuestionsForRealm(currentRealmId)[currentQuestionIdx];
+  const hintEl = document.getElementById('hint-text');
+  hintEl.textContent = `Hint: Look for '${q.correct.charAt(0)}'!`;
+  hintEl.classList.remove('hidden');
+  readHumanVoice(`Hint: look for ${q.correct}`);
+}
+
+function finishRealm() {
+  if (catchAnimationId) cancelAnimationFrame(catchAnimationId);
+  confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+  
+  completedRealms.add(currentRealmId);
+
+  readHumanVoice('Congratulations! You completed the reading realm adventure!');
+  alert(`🎉 Realm Complete! You earned ${userCoins} coins!`);
+  renderRealms();
+  switchView('home');
+}
+
+function exitGame() {
+  if (catchAnimationId) cancelAnimationFrame(catchAnimationId);
+  switchView('home');
+}
+
+// --- DYNAMIC CERTIFICATE GENERATOR ---
+function openCertificateModal(studentName = 'Learner Champion', grade = 'Grade 1') {
+  document.getElementById('cert-student-name').textContent = studentName;
+  
+  const certRealmsContainer = document.getElementById('cert-realms-container');
+  certRealmsContainer.innerHTML = '';
+
+  if (completedRealms.size === 0) {
+    certRealmsContainer.innerHTML = `
+      <span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3 py-1 rounded-full">
+        ⭐ Alphabet Village (Sample Completed Realm)
+      </span>
+    `;
+  } else {
+    completedRealms.forEach(realmId => {
+      const realmObj = REALMS_DATA.find(r => r.id === realmId);
+      if (realmObj) {
+        const badge = document.createElement('span');
+        badge.className = 'bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3.5 py-1 rounded-full flex items-center space-x-1';
+        badge.innerHTML = `<span>${realmObj.icon}</span> <span>${realmObj.title} (${realmObj.level})</span>`;
+        certRealmsContainer.appendChild(badge);
+      }
+    });
+  }
+
+  document.getElementById('certificate-modal').classList.remove('hidden');
+}
+
+function closeCertificateModal() {
+  document.getElementById('certificate-modal').classList.add('hidden');
+}
+
+function renderDashboard() {
+  const tbody = document.getElementById('roster-tbody');
+  tbody.innerHTML = LEARNERS_ROSTER.map(l => `
+    <tr class="hover:bg-slate-50 transition">
+      <td class="py-3 px-4 font-bold text-slate-800">${l.name}</td>
+      <td class="py-3 px-4">${l.grade}</td>
+      <td class="py-3 px-4"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">${l.level}</span></td>
+      <td class="py-3 px-4 font-bold text-amber-600">🪙 ${l.coins}</td>
+      <td class="py-3 px-4">
+        <button onclick="openCertificateModal('${l.name}', '${l.grade}')" class="text-xs bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-3 py-1.5 rounded-lg shadow">
+          📜 Certificate
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  init3DWorld();
+  renderRealms();
+});
+</script>
+</body>
+</html>
